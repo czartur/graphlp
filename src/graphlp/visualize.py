@@ -22,7 +22,7 @@ def visualize_embeddings(
         ax = fig.add_subplot(111)
 
     for word in enumerate(words):
-        emb_axis = [embedding_matrix[get_word_index(word), k] for k in range(len(embedding_dim))]
+        emb_axis = [embedding_matrix[get_word_index(word), k] for k in range(embedding_dim)]
         ax.text(*emb_axis, word, zorder=1)
 
     plt.show()
