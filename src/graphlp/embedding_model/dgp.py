@@ -37,9 +37,9 @@ class DGP(EmbeddingModel):
         # X ~ L @ L.T
         # L = vecs @ sqrt(max(vals,0)) [nearest PSD] 
         vals, vecs = np.linalg.eigh(X)
-        realizations = vecs @ np.diag(np.sqrt(np.maximum(vals, 0)))
+        x = vecs @ np.diag(np.sqrt(np.maximum(vals, 0)))
         
         # filter dims corresponding to largest eigenvalues 
-        realizations = realizations[:, -Kdim:]
+        x = x[:, -Kdim:]
 
-        return realizations
+        return x
