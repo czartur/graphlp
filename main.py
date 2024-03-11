@@ -91,7 +91,7 @@ def main():
         graph.enrich(path_word_similarity)
     if config.model == "DGP":
         dgp = embedding_model.DGP(
-            'old/dgp_ddp.mod',
+            'models/dgp_ddp.mod',
             Kdim=config.dgp_kdim,
             solver=config.dgp_solver
         )
@@ -99,7 +99,7 @@ def main():
     elif config.model == "NLP":
         if config.nlp_initial_embedding_from == "DGP":
             dgp = embedding_model.DGP(
-                'old/dgp_ddp.mod',
+                'models/dgp_ddp.mod',
                 Kdim=config.dgp_kdim,
                 solver=config.dgp_solver
             )
@@ -110,7 +110,7 @@ def main():
             return
 
         nlp = embedding_model.NLP(
-            'old/dgp.mod',
+            'models/dgp.mod',
             enriched_embeddings,
             solver=config.nlp_solver
         )
