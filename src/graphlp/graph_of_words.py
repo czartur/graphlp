@@ -1,10 +1,11 @@
 __all__ = ["GraphOfWords"]
-from itertools import product
-from typing import Callable, Dict, List
+
 import networkx as nx
 import numpy as np
-
 from nltk.tokenize import wordpunct_tokenize
+from itertools import product
+from typing import Callable, Dict, List
+
 
 
 class GraphOfWords:

@@ -21,9 +21,10 @@ def path_word_similarity(word1, word2):
 
     for synset1 in synsets1:
         for synset2 in synsets2:
+            if synset1 is None or synset2 is None:
+                continue
             similarity = synset1.path_similarity(synset2)
             if similarity and similarity > max_similarity:
                 max_similarity = similarity
 
     return max_similarity
-

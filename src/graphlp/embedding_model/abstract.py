@@ -5,6 +5,7 @@ import numpy as np
 
 
 class EmbeddingModel(ABC):
+
     @abstractmethod
-    def embed(self, graph: np.ndarray, **kwargs) -> np.ndarray:
+    def embed(self, graph: np.ndarray) -> np.ndarray:
         ...
