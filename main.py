@@ -97,7 +97,8 @@ def main():
         dgp = embedding_model.DGP(
             'models/dgp_ddp.mod',
             Kdim=config.dgp_kdim,
-            solver=config.dgp_solver
+            solver=config.dgp_solver,
+            projection=config.dgp_projection,
         )
         embedding = dgp.embed(adjacency_matrix)
     elif config.model == "NLP":
@@ -105,7 +106,8 @@ def main():
             dgp = embedding_model.DGP(
                 'models/dgp_ddp.mod',
                 Kdim=config.dgp_kdim,
-                solver=config.dgp_solver
+                solver=config.dgp_solver,
+                projection=config.dgp_projection,
             )
             enriched_embeddings = dgp.embed(adjacency_matrix)
             # print(enriched_embeddings)
