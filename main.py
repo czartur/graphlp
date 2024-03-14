@@ -83,12 +83,15 @@ def main():
 
     print("Creating the graph-of-words.")
     graph = GraphOfWords(corpus, radius=config.radius)
-    adjacency_matrix = graph.adjacency_matrix()
-    embedding = np.zeros(0)
-
-    print("Running the model.")
+    # adjacency_matrix = graph.adjacency_matrix()
+    # embedding = np.zeros(0)
+    
+    print("Enriching the graph-of-words.")
     if config.similarity == "path_word":
         graph.enrich(path_word_similarity)
+    adjacency_matrix = graph.adjacency_matrix()
+
+    print("Running the model.")
     if config.model == "DGP":
         dgp = embedding_model.DGP(
             'models/dgp_ddp.mod',
@@ -104,7 +107,7 @@ def main():
                 solver=config.dgp_solver
             )
             enriched_embeddings = dgp.embed(adjacency_matrix)
-            print(enriched_embeddings)
+            # print(enriched_embeddings)
         else:
             print("Initial embeddings method not allowed.")
             return

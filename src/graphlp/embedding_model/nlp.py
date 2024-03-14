@@ -24,9 +24,7 @@ class NLP(EmbeddingModel):
         n, Kdim = self._initial_embedding.shape
 
         ampl_graph = numpy_to_ampl(graph)
-        print(self._initial_embedding)
         ampl_intial_embedding = numpy_to_ampl(self._initial_embedding)
-        print(ampl_intial_embedding)
 
         # set variables
         self.model.param['Kdim'] = Kdim
