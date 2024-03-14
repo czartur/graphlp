@@ -27,36 +27,37 @@ class Configuration:
     nlp_solver: str = "ipopt"
     dgp_kdim: int = 3
     dgp_solver: str = "cplex"
-
+    dgp_projection: Union[Literal["pca"], Literal["barvinok"]] = "pca"
 
 def dataclass_to_argparse(dc):
     parser = argparse.ArgumentParser()
     for dc_field in fields(dc):
         field_type = dc_field.type
+        field_name = dc_field.name.replace('_', '-')
         if field_type is bool:
             parser.add_argument(
-                f'--{dc_field.name}',
+                f'--{field_name}',
                 action='store_true',
-                help=f'{dc_field.name} (default: {dc_field.default})'
+                help=f'{field_name} (default: {dc_field.default})'
             )
             parser.add_argument(
-                f'--no-{dc_field.name}',
-                dest=dc_field.name,
+                f'--no-{field_name}',
+                dest=field_name,
                 action='store_false'
             )
-            parser.set_defaults(**{dc_field.name: dc_field.default})
+            parser.set_defaults(**{field_name: dc_field.default})
         elif field_type is int:
             parser.add_argument(
-                f'--{dc_field.name}',
+                f'--{field_name}',
                 type=int,
                 default=dc_field.default,
-                help=f'{dc_field.name} (default: {dc_field.default})'
+                help=f'{field_name} (default: {dc_field.default})'
             )
         else:
             parser.add_argument(
-                f'--{dc_field.name}',
+                f'--{field_name}',
                 default=dc_field.default,
-                help=f'{dc_field.name} (default: {dc_field.default})'
+                help=f'{field_name} (default: {dc_field.default})'
             )
     return parser
 
@@ -129,6 +130,6 @@ def main():
     words = config.words.split(",")
     visualize_embeddings(embedding, words, graph.get_word_idx)
 
-
+ 
 if __name__ == "__main__":
     main()

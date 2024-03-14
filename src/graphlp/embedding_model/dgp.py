@@ -8,11 +8,22 @@ from graphlp.embedding_model.ampl_parsers import ampl_to_numpy, numpy_to_ampl
 
 
 class DGP(EmbeddingModel):
-    def __init__(self, model_path: str, solver: str = 'cplex', Kdim: int = 3):
+    def __init__(
+            self,
+            model_path: str,
+            solver: str = 'cplex',
+            Kdim: int = 3,
+            projection: str = 'pca',
+        ) -> None:
         self.model = AMPL()
         self.model.read(model_path)
         self.model.setOption('solver', solver)
-        self._kdim = Kdim
+        self._kdim = Kdim 
+
+        if projection == 'pca':
+            self._projection = self._pca
+        elif projection == 'barnikok':
+            self._projection = self._barvinok
 
     def embed(self, graph: np.ndarray) -> np.ndarray:
         assert np.allclose(graph, graph.T)
@@ -33,11 +44,12 @@ class DGP(EmbeddingModel):
         X = ampl_to_numpy(ampl_X, shape=(n, n))
 
         # retrieve realizations
-        return self._pca(X, self._kdim)
+        x = self._projection(X, self._kdim)
+        return x
 
     @staticmethod
-    def _pca(X: np.ndarray, Kdim: int) -> np.ndarray:
-        assert Kdim <= len(X)
+    def _pca(X: np.ndarray, K: int) -> np.ndarray:
+        assert K <= len(X)
 
         # X ~ L @ L.T
         # L = vecs @ sqrt(max(vals,0)) [nearest PSD]
@@ -45,6 +57,13 @@ class DGP(EmbeddingModel):
         x = vecs @ np.diag(np.sqrt(np.maximum(vals, 0)))
 
         # filter dims corresponding to largest eigenvalues
-        x = x[:, -Kdim:]
+        x = x[:, -K:]
 
         return x
+
+    @staticmethod
+    def _barvinok(X: np.ndarray, K: int) -> np.ndarray: 
+        n = X.shape[0]
+        T = DGP._pca(X, n) 
+        y = np.random.normal(0, 1/np.sqrt(K), size=(n,K))
+        return T @ y
