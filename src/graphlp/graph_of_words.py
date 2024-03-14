@@ -7,7 +7,6 @@ from itertools import product
 from typing import Callable, Dict, List
 
 
-
 class GraphOfWords:
     def __init__(self, corpus: List[str], radius: int = 3,
                  tokenize: Callable[[str], List[str]] = wordpunct_tokenize
