@@ -22,9 +22,16 @@ def visualize_embeddings(
     else:  # dim == 2
         ax = fig.add_subplot(111)
 
-    for word in enumerate(words):
-        emb_axis = [embedding_matrix[get_word_index(
-            word), k] for k in range(embedding_dim)]
-        ax.text(*emb_axis, word, zorder=1)
+    embeddings = np.array([embedding_matrix[get_word_index(word)] for word in words])
+    min_vals = np.min(embeddings, axis=0)
+    max_vals = np.max(embeddings, axis=0)
+
+    for i, word in enumerate(words):
+        ax.text(*embeddings[i, :embedding_dim], word, zorder=1)
+
+    ax.set_xlim(min_vals[0], max_vals[0])
+    ax.set_ylim(min_vals[1], max_vals[1])
+    if embedding_dim == 3:
+        ax.set_zlim(min_vals[2], max_vals[2])
 
     plt.show()
