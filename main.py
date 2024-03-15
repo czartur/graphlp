@@ -2,7 +2,8 @@
 
 import argparse
 from dataclasses import dataclass, fields
-from typing import Literal, Union
+from typing import List, Literal, Union
+import matplotlib.pyplot as plt
 import numpy as np
 import nltk.corpus as corpi
 import nltk
@@ -20,14 +21,15 @@ class Configuration:
     corpus: Union[Literal["brown"], Literal["wordnet"]] = "brown"
     training_size: int = 100
     similarity: Union[Literal["path_word"], None] = "path_word"
-    model: Union[Literal["NLP"], Literal["DGP"], Literal["UIE"]] = "NLP"
-    words: str = "hello, hi"
+    model: Union[Literal["NLP"], Literal["DGP"], Literal["ISO"]] = "NLP"
+    sample_size: int = 3
     # model parameters
     nlp_initial_embedding_from: Literal["DGP"] = "DGP"
     nlp_solver: str = "ipopt"
     dgp_kdim: int = 3
     dgp_solver: str = "cplex"
     dgp_projection: Union[Literal["pca"], Literal["barvinok"]] = "pca"
+
 
 def dataclass_to_argparse(dc):
     parser = argparse.ArgumentParser()
@@ -84,9 +86,7 @@ def main():
 
     print("Creating the graph-of-words.")
     graph = GraphOfWords(corpus, radius=config.radius)
-    # adjacency_matrix = graph.adjacency_matrix()
-    # embedding = np.zeros(0)
-    
+
     print("Enriching the graph-of-words.")
     if config.similarity == "path_word":
         graph.enrich(path_word_similarity)
@@ -110,7 +110,6 @@ def main():
                 projection=config.dgp_projection,
             )
             enriched_embeddings = dgp.embed(adjacency_matrix)
-            # print(enriched_embeddings)
         else:
             print("Initial embeddings method not allowed.")
             return
@@ -121,17 +120,46 @@ def main():
             solver=config.nlp_solver
         )
         embedding = nlp.embed(adjacency_matrix)
-    elif config.model == "UIE":
-        uie = embedding_model.UIE()
-        embedding = uie.embed(adjacency_matrix)
+    elif config.model == "ISO":
+        iso = embedding_model.IsometricEmbedding()
+        embedding = iso.embed(adjacency_matrix)
     else:
         print("Model not supported")
         return
 
     print("Visualizing the embeddings.")
-    words = config.words.split(",")
+
+    all_words = " ".join(corpus).split(" ")
+    words: List[str] = np.random.choice(
+        all_words, config.sample_size).tolist()
+
     visualize_embeddings(embedding, words, graph.get_word_idx)
 
- 
+    while True:
+        if plt.waitforbuttonpress(0):
+            plt.close()
+            user_input = input(
+                "Enter 'n' to input a new word, 'q' to quit or 'r' to a new random word: ")
+            if user_input == 'q':
+                break
+            elif user_input == 'r':
+                new_word = np.random.choice(
+                    [w for w in all_words if w not in words])
+                words.append(new_word)
+                visualize_embeddings(embedding, words, graph.get_word_idx)
+            elif user_input == 'n':
+                print(words)
+                new_word = input("Enter a word you want to visualize: ")
+                if graph.get_word_idx(new_word) == 0:
+                    print("Word not in vocabulary.")
+                else:
+                    words.append(new_word)
+                visualize_embeddings(embedding, words, graph.get_word_idx)
+
+            else:
+                print("Input not recognized. Closing.")
+                break
+
+
 if __name__ == "__main__":
     main()
