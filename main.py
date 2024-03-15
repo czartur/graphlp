@@ -1,6 +1,6 @@
-# cli entry point
-
 import argparse
+import pickle
+import os
 from dataclasses import dataclass, fields
 from typing import List, Literal, Union
 import matplotlib.pyplot as plt
@@ -8,12 +8,11 @@ import numpy as np
 import nltk.corpus as corpi
 import nltk
 
-
 from graphlp.graph_of_words import GraphOfWords
 from graphlp.similarity import path_word_similarity
 from graphlp import embedding_model
 from graphlp.visualize import visualize_embeddings
-
+from graphlp.benchmark import print_error_summary
 
 @dataclass
 class Configuration:
@@ -29,7 +28,8 @@ class Configuration:
     dgp_kdim: int = 3
     dgp_solver: str = "cplex"
     dgp_projection: Union[Literal["pca"], Literal["barvinok"]] = "pca"
-
+    save_path: str = "" 
+    load_path: str = ""
 
 def dataclass_to_argparse(dc):
     parser = argparse.ArgumentParser()
@@ -63,76 +63,101 @@ def dataclass_to_argparse(dc):
             )
     return parser
 
-
 def parse_args_to_dataclass(dc_cls):
     parser = dataclass_to_argparse(dc_cls)
     args = parser.parse_args()
     return dc_cls(**vars(args))
 
+def save_data(data, filename):
+    with open(filename, 'wb') as file:
+        pickle.dump(data, file)
+
+def load_data(filename):
+    with open(filename, 'rb') as file:
+        data = pickle.load(file)
+    return data
 
 def main():
-
     config = parse_args_to_dataclass(Configuration)
+    
+    if config.load_path:
+        if os.path.exists(config.load_path):
+            print(f"Loading model and embeddings from {config.load_path}")
+            saved_data = load_data(config.load_path)
+            graph = saved_data['graph']
+            embedding = saved_data['embedding']
+        else:
+            print(f"No file found at {config.load_path}. Aborting execution.")
+            return
+    else:
+        print("Downloading selected corpus.")
+        nltk.download(config.corpus)
+        corpus_loader = getattr(corpi, config.corpus)
+        if corpus_loader is None:
+            return
+        corpus = [
+            " ".join(sentence)
+            for sentence in corpus_loader.sents()[:config.training_size]
+        ]
 
-    print("Downloading selected corpus.")
-    nltk.download(config.corpus)
-    corpus_loader = getattr(corpi, config.corpus)
-    if corpus_loader is None:
-        return
-    corpus = [
-        " ".join(sentence)
-        for sentence in corpus_loader.sents()[:config.training_size]
-    ]
+        print("Creating the graph-of-words.")
+        graph = GraphOfWords(corpus, radius=config.radius)
 
-    print("Creating the graph-of-words.")
-    graph = GraphOfWords(corpus, radius=config.radius)
+        print("Enriching the graph-of-words.")
+        if config.similarity == "path_word":
+            graph.enrich(path_word_similarity)
+        adjacency_matrix = graph.adjacency_matrix()
 
-    print("Enriching the graph-of-words.")
-    if config.similarity == "path_word":
-        graph.enrich(path_word_similarity)
-    adjacency_matrix = graph.adjacency_matrix()
-
-    print("Running the model.")
-    if config.model == "DGP":
-        dgp = embedding_model.DGP(
-            'models/dgp_ddp.mod',
-            Kdim=config.dgp_kdim,
-            solver=config.dgp_solver,
-            projection=config.dgp_projection,
-        )
-        embedding = dgp.embed(adjacency_matrix)
-    elif config.model == "NLP":
-        if config.nlp_initial_embedding_from == "DGP":
+        print("Running the model.")
+        if config.model == "DGP":
             dgp = embedding_model.DGP(
                 'models/dgp_ddp.mod',
                 Kdim=config.dgp_kdim,
                 solver=config.dgp_solver,
                 projection=config.dgp_projection,
             )
-            enriched_embeddings = dgp.embed(adjacency_matrix)
+            embedding = dgp.embed(adjacency_matrix)
+        elif config.model == "NLP":
+            if config.nlp_initial_embedding_from == "DGP":
+                dgp = embedding_model.DGP(
+                    'models/dgp_ddp.mod',
+                    Kdim=config.dgp_kdim,
+                    solver=config.dgp_solver,
+                    projection=config.dgp_projection,
+                )
+                enriched_embeddings = dgp.embed(adjacency_matrix)
+            else:
+                print("Initial embeddings method not allowed.")
+                return
+
+            nlp = embedding_model.NLP(
+                'models/dgp.mod',
+                enriched_embeddings,
+                solver=config.nlp_solver
+            )
+            embedding = nlp.embed(adjacency_matrix)
+        elif config.model == "ISO":
+            iso = embedding_model.IsometricEmbedding()
+            embedding = iso.embed(adjacency_matrix)
         else:
-            print("Initial embeddings method not allowed.")
+            print("Model not supported")
             return
 
-        nlp = embedding_model.NLP(
-            'models/dgp.mod',
-            enriched_embeddings,
-            solver=config.nlp_solver
-        )
-        embedding = nlp.embed(adjacency_matrix)
-    elif config.model == "ISO":
-        iso = embedding_model.IsometricEmbedding()
-        embedding = iso.embed(adjacency_matrix)
-    else:
-        print("Model not supported")
-        return
-
+    
+    if config.save_path:
+        print(f"Saving model and embeddings to {config.save_path}")
+        save_data({'graph': graph,'embedding': embedding}, config.save_path)
+    
+    print("Evaluating error statistics.")
+    print_error_summary(embedding, graph.adjacency_matrix())
+    
     print("Visualizing the embeddings.")
-
-    all_words = " ".join(corpus).split(" ")
+    
+    all_words = graph.all_words
     words: List[str] = np.random.choice(
         all_words, config.sample_size).tolist()
-
+    
+    print(words)
     visualize_embeddings(embedding, words, graph.get_word_idx)
 
     while True:
@@ -159,7 +184,6 @@ def main():
             else:
                 print("Input not recognized. Closing.")
                 break
-
 
 if __name__ == "__main__":
     main()

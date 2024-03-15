@@ -40,6 +40,10 @@ class GraphOfWords:
     @property
     def graph(self) -> nx.Graph:
         return self._graph
+    
+    @property
+    def all_words(self) -> List[str]:
+        return list(self._vocabulary.keys()) 
 
     def adjacency_matrix(self) -> np.ndarray:
         n = len(self._vocabulary.values())
