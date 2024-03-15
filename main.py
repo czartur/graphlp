@@ -10,8 +10,7 @@ import nltk
 
 
 from graphlp.graph_of_words import GraphOfWords
-from graphlp.similarity import path_word_similarity
-from graphlp import embedding_model
+from graphlp import embedding_model, similarity as sim
 from graphlp.visualize import visualize_embeddings
 
 
@@ -20,7 +19,8 @@ class Configuration:
     radius: int = 3
     corpus: Union[Literal["brown"], Literal["wordnet"]] = "brown"
     training_size: int = 100
-    similarity: Union[Literal["path_word"], None] = "path_word"
+    similarity: Union[Literal["path"],
+                      Literal["lch"], Literal["wup"], None] = "path"
     model: Union[Literal["NLP"], Literal["DGP"], Literal["ISO"]] = "NLP"
     sample_size: int = 3
     # model parameters
@@ -88,8 +88,15 @@ def main():
     graph = GraphOfWords(corpus, radius=config.radius)
 
     print("Enriching the graph-of-words.")
-    if config.similarity == "path_word":
-        graph.enrich(path_word_similarity)
+    if config.similarity == "path":
+        graph.enrich(sim.path_word_similarity)
+    elif config.similarity == "wup":
+        graph.enrich(sim.wup_word_similarity)
+    elif config.similarity == "lch":
+        graph.enrich(sim.lch_word_similarity)
+    else:
+        print("Similaity measure not supported.")
+        return
     adjacency_matrix = graph.adjacency_matrix()
 
     print("Running the model.")
