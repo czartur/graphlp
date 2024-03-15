@@ -22,8 +22,12 @@ class DGP(EmbeddingModel):
 
         if projection == 'pca':
             self._projection = self._pca
-        elif projection == 'barnikok':
+        elif projection == 'barvinok':
             self._projection = self._barvinok
+        else:
+            print("Projection not recognized."
+                  + "Defaulting to PCA.")
+            self._projection = self._pca
 
     def embed(self, graph: np.ndarray) -> np.ndarray:
         assert np.allclose(graph, graph.T)
