@@ -11,7 +11,6 @@ def numpy_to_ampl(matrix: np.ndarray) -> Dict:
     ampl_matrix = {
         (i+1, j+1): matrix[i][j]
         for i, j in product(range(shape[0]), range(shape[1]))
-        # if matrix[i][j] != 0
     }
     return ampl_matrix
 

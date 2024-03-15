@@ -17,6 +17,11 @@ If you want to edit the code in the library and see changes directly, install it
 pip install -e .
 ```
 
+If (for some reason) you want to install this dependency on another project you can install it directly from github via:
+```bash
+pip install git+https://github.com/czartur/graphlp
+```
+
 After installation, you should be able to use it as usual:
 ```python
 import graphlp
@@ -62,3 +67,5 @@ This will run the desired model on the subset of the corpus to generate embeddin
 Uppon pressing any key you will leave the tool and be prompted on the terminal for the next step.
 We currently have support for adding a word of your choice or a random word and relauching the visualization.
 
+## Report
+A full report with an overview of the methods used and with benchmarking results can be also found in the root directory of the project.

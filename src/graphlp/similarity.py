@@ -1,5 +1,5 @@
 __all__ = ["path_word_similarity",
-           "wup_word_similarity", "lch_word_similarity"]
+           "wup_word_similarity"]
 from nltk.corpus import wordnet as wn
 
 
@@ -35,9 +35,3 @@ def wup_word_similarity(word1, word2):
     return _nltk_word_similarity(
         word1, word2,
         lambda x, y: x.wup_similarity(y))
-
-
-def lch_word_similarity(word1, word2):
-    return _nltk_word_similarity(
-        word1, word2,
-        lambda x, y: x.lch_similarity(y))

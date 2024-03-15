@@ -11,7 +11,7 @@ import nltk
 from graphlp.graph_of_words import GraphOfWords
 from graphlp import embedding_model, similarity as sim
 from graphlp.visualize import visualize_embeddings
-from graphlp.benchmark import print_error_summary
+from graphlp.metrics import print_error_summary
 
 
 @dataclass
@@ -19,18 +19,17 @@ class Configuration:
     radius: int = 3
     corpus: Union[Literal["brown"], Literal["wordnet"]] = "brown"
     training_size: int = 100
-    similarity: Union[Literal["path"],
-                      Literal["lch"], Literal["wup"], None] = "path"
+    similarity: Union[Literal["path"], Literal["wup"], None] = "path"
     model: Union[Literal["NLP"], Literal["DGP"], Literal["ISO"]] = "NLP"
     sample_size: int = 3
+    save_path: str = ""
+    load_path: str = ""
     # model parameters
     nlp_initial_embedding_from: Literal["DGP"] = "DGP"
     nlp_solver: str = "ipopt"
     dgp_kdim: int = 3
     dgp_solver: str = "cplex"
     dgp_projection: Union[Literal["pca"], Literal["barvinok"]] = "pca"
-    save_path: str = ""
-    load_path: str = ""
 
 
 def dataclass_to_argparse(dc):
@@ -204,4 +203,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -3,7 +3,6 @@ __all__ = ["GraphOfWords"]
 import networkx as nx
 import numpy as np
 from nltk.tokenize import wordpunct_tokenize
-# from itertools import product
 from tqdm.contrib.itertools import product
 from typing import Callable, Dict, List
 
@@ -40,10 +39,10 @@ class GraphOfWords:
     @property
     def graph(self) -> nx.Graph:
         return self._graph
-    
+
     @property
     def all_words(self) -> List[str]:
-        return list(self._vocabulary.keys()) 
+        return list(self._vocabulary.keys())
 
     def adjacency_matrix(self) -> np.ndarray:
         n = len(self._vocabulary.values())

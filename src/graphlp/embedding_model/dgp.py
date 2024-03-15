@@ -9,16 +9,16 @@ from graphlp.embedding_model.ampl_parsers import ampl_to_numpy, numpy_to_ampl
 
 class DGP(EmbeddingModel):
     def __init__(
-            self,
-            model_path: str,
-            solver: str = 'cplex',
-            Kdim: int = 3,
-            projection: str = 'pca',
-        ) -> None:
+        self,
+        model_path: str,
+        solver: str = 'cplex',
+        Kdim: int = 3,
+        projection: str = 'pca',
+    ) -> None:
         self.model = AMPL()
         self.model.read(model_path)
         self.model.setOption('solver', solver)
-        self._kdim = Kdim 
+        self._kdim = Kdim
 
         if projection == 'pca':
             self._projection = self._pca
@@ -62,8 +62,8 @@ class DGP(EmbeddingModel):
         return x
 
     @staticmethod
-    def _barvinok(X: np.ndarray, K: int) -> np.ndarray: 
+    def _barvinok(X: np.ndarray, K: int) -> np.ndarray:
         n = X.shape[0]
-        T = DGP._pca(X, n) 
-        y = np.random.normal(0, 1/np.sqrt(K), size=(n,K))
+        T = DGP._pca(X, n)
+        y = np.random.normal(0, 1/np.sqrt(K), size=(n, K))
         return T @ y
