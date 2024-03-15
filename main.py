@@ -13,6 +13,7 @@ from graphlp import embedding_model, similarity as sim
 from graphlp.visualize import visualize_embeddings
 from graphlp.benchmark import print_error_summary
 
+
 @dataclass
 class Configuration:
     radius: int = 3
@@ -28,8 +29,9 @@ class Configuration:
     dgp_kdim: int = 3
     dgp_solver: str = "cplex"
     dgp_projection: Union[Literal["pca"], Literal["barvinok"]] = "pca"
-    save_path: str = "" 
+    save_path: str = ""
     load_path: str = ""
+
 
 def dataclass_to_argparse(dc):
     parser = argparse.ArgumentParser()
@@ -63,23 +65,27 @@ def dataclass_to_argparse(dc):
             )
     return parser
 
+
 def parse_args_to_dataclass(dc_cls):
     parser = dataclass_to_argparse(dc_cls)
     args = parser.parse_args()
     return dc_cls(**vars(args))
 
+
 def save_data(data, filename):
     with open(filename, 'wb') as file:
         pickle.dump(data, file)
+
 
 def load_data(filename):
     with open(filename, 'rb') as file:
         data = pickle.load(file)
     return data
 
+
 def main():
     config = parse_args_to_dataclass(Configuration)
-    
+
     if config.load_path:
         if os.path.exists(config.load_path):
             print(f"Loading model and embeddings from {config.load_path}")
@@ -144,29 +150,28 @@ def main():
                 solver=config.nlp_solver
             )
             embedding = nlp.embed(adjacency_matrix)
-            
+
         elif config.model == "ISO":
             iso = embedding_model.IsometricEmbedding()
             embedding = iso.embed(adjacency_matrix)
-            
+
         else:
             print("Model not supported")
             return
 
-    
     if config.save_path:
         print(f"Saving model and embeddings to {config.save_path}")
-        save_data({'graph': graph,'embedding': embedding}, config.save_path)
-    
+        save_data({'graph': graph, 'embedding': embedding}, config.save_path)
+
     print("Evaluating error statistics.")
     print_error_summary(embedding, graph.adjacency_matrix())
-    
+
     print("Visualizing the embeddings.")
-    
+
     all_words = graph.all_words
     words: List[str] = np.random.choice(
         all_words, config.sample_size).tolist()
-    
+
     print(words)
     visualize_embeddings(embedding, words, graph.get_word_idx)
 
@@ -196,5 +201,7 @@ def main():
                 print("Input not recognized. Closing.")
                 break
 
+
 if __name__ == "__main__":
     main()
+
