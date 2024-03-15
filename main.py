@@ -9,8 +9,7 @@ import nltk.corpus as corpi
 import nltk
 
 from graphlp.graph_of_words import GraphOfWords
-from graphlp.similarity import path_word_similarity
-from graphlp import embedding_model
+from graphlp import embedding_model, similarity as sim
 from graphlp.visualize import visualize_embeddings
 from graphlp.benchmark import print_error_summary
 
@@ -19,7 +18,8 @@ class Configuration:
     radius: int = 3
     corpus: Union[Literal["brown"], Literal["wordnet"]] = "brown"
     training_size: int = 100
-    similarity: Union[Literal["path_word"], None] = "path_word"
+    similarity: Union[Literal["path"],
+                      Literal["lch"], Literal["wup"], None] = "path"
     model: Union[Literal["NLP"], Literal["DGP"], Literal["ISO"]] = "NLP"
     sample_size: int = 3
     # model parameters
@@ -104,8 +104,15 @@ def main():
         graph = GraphOfWords(corpus, radius=config.radius)
 
         print("Enriching the graph-of-words.")
-        if config.similarity == "path_word":
-            graph.enrich(path_word_similarity)
+        if config.similarity == "path":
+            graph.enrich(sim.path_word_similarity)
+        elif config.similarity == "wup":
+            graph.enrich(sim.wup_word_similarity)
+        elif config.similarity == "lch":
+            graph.enrich(sim.lch_word_similarity)
+        else:
+            print("Similaity measure not supported.")
+            return
         adjacency_matrix = graph.adjacency_matrix()
 
         print("Running the model.")
@@ -117,6 +124,7 @@ def main():
                 projection=config.dgp_projection,
             )
             embedding = dgp.embed(adjacency_matrix)
+
         elif config.model == "NLP":
             if config.nlp_initial_embedding_from == "DGP":
                 dgp = embedding_model.DGP(
@@ -136,9 +144,11 @@ def main():
                 solver=config.nlp_solver
             )
             embedding = nlp.embed(adjacency_matrix)
+            
         elif config.model == "ISO":
             iso = embedding_model.IsometricEmbedding()
             embedding = iso.embed(adjacency_matrix)
+            
         else:
             print("Model not supported")
             return
@@ -164,7 +174,9 @@ def main():
         if plt.waitforbuttonpress(0):
             plt.close()
             user_input = input(
-                "Enter 'n' to input a new word, 'q' to quit or 'r' to a new random word: ")
+                "Enter 'n' to input a new word, "
+                + "'q' to quit or "
+                + "'r' to a new random word: ")
             if user_input == 'q':
                 break
             elif user_input == 'r':
@@ -173,7 +185,6 @@ def main():
                 words.append(new_word)
                 visualize_embeddings(embedding, words, graph.get_word_idx)
             elif user_input == 'n':
-                print(words)
                 new_word = input("Enter a word you want to visualize: ")
                 if graph.get_word_idx(new_word) == 0:
                     print("Word not in vocabulary.")
