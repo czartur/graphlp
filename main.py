@@ -25,7 +25,7 @@ class Configuration:
     save_path: str = ""
     load_path: str = ""
     # model parameters
-    nlp_initial_embedding_from: Literal["DGP"] = "DGP"
+    nlp_initial_embedding_from: Union[Literal["DGP"], Literal["ISO"]] = "DGP"
     nlp_solver: str = "ipopt"
     dgp_kdim: int = 3
     dgp_solver: str = "cplex"
@@ -139,6 +139,9 @@ def main():
                     projection=config.dgp_projection,
                 )
                 enriched_embeddings = dgp.embed(adjacency_matrix)
+            elif config.nlp_initial_embedding_from == "ISO":
+                iso = embedding_model.IsometricEmbedding()
+                enriched_embeddings = iso.embed(adjacency_matrix)
             else:
                 print("Initial embeddings method not allowed.")
                 return
