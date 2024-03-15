@@ -139,7 +139,9 @@ def main():
         if plt.waitforbuttonpress(0):
             plt.close()
             user_input = input(
-                "Enter 'n' to input a new word, 'q' to quit or 'r' to a new random word: ")
+                "Enter 'n' to input a new word, "
+                + "'q' to quit or "
+                + "'r' to a new random word: ")
             if user_input == 'q':
                 break
             elif user_input == 'r':
@@ -148,7 +150,6 @@ def main():
                 words.append(new_word)
                 visualize_embeddings(embedding, words, graph.get_word_idx)
             elif user_input == 'n':
-                print(words)
                 new_word = input("Enter a word you want to visualize: ")
                 if graph.get_word_idx(new_word) == 0:
                     print("Word not in vocabulary.")
