@@ -87,7 +87,7 @@ An example of combined usage would be the following:
 
 ```bash
 python multi_main.py \
-    --output-path trained \     ## folder to save all the trained models
+    --output-path trained \     ## where to save all the trained models
     --training-size 10 50 100 \ ## pass the parameters space-separated if needed
     --model NLP \
     --nlp-initial-embedding-from DDP ISO \
