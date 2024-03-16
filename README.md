@@ -83,7 +83,7 @@ python multi_main.py -h
 bash benchmark.sh -h
 ```
 
-An example of combined usage would be the following:
+An example of combined usage:
 
 ```bash
 python multi_main.py \
