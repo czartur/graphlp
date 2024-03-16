@@ -20,17 +20,17 @@ class Configuration:
     corpus: Union[Literal["brown"], Literal["wordnet"]] = "brown"
     training_size: int = 100
     similarity: Union[Literal["path"], Literal["wup"], None] = "path"
-    model: Union[Literal["NLP"], Literal["DGP"], Literal["ISO"]] = "NLP"
+    model: Union[Literal["NLP"], Literal["DDP"], Literal["ISO"]] = "NLP"
     sample_size: int = 3
     save_path: str = ""
     load_path: str = ""
     # model parameters
-    nlp_initial_embedding_from: Union[Literal["DGP"], Literal["ISO"]] = "DGP"
+    nlp_initial_embedding_from: Union[Literal["DDP"], Literal["ISO"]] = "DDP"
     nlp_solver: str = "ipopt"
-    dgp_kdim: int = 3
-    dgp_solver: str = "cplex"
-    dgp_projection: Union[Literal["pca"], Literal["barvinok"]] = "pca"
-
+    ddp_kdim: int = 3
+    ddp_solver: str = "cplex"
+    ddp_projection: Union[Literal["pca"], Literal["barvinok"]] = "pca"
+    plot: bool = True
 
 def dataclass_to_argparse(dc):
     parser = argparse.ArgumentParser()
@@ -113,32 +113,30 @@ def main():
             graph.enrich(sim.path_word_similarity)
         elif config.similarity == "wup":
             graph.enrich(sim.wup_word_similarity)
-        elif config.similarity == "lch":
-            graph.enrich(sim.lch_word_similarity)
         else:
             print("Similaity measure not supported.")
             return
         adjacency_matrix = graph.adjacency_matrix()
 
         print("Running the model.")
-        if config.model == "DGP":
-            dgp = embedding_model.DGP(
+        if config.model == "DDP":
+            ddp = embedding_model.DDP(
                 'models/dgp_ddp.mod',
-                Kdim=config.dgp_kdim,
-                solver=config.dgp_solver,
-                projection=config.dgp_projection,
+                Kdim=config.ddp_kdim,
+                solver=config.ddp_solver,
+                projection=config.ddp_projection,
             )
-            embedding = dgp.embed(adjacency_matrix)
+            embedding = ddp.embed(adjacency_matrix)
 
         elif config.model == "NLP":
-            if config.nlp_initial_embedding_from == "DGP":
-                dgp = embedding_model.DGP(
+            if config.nlp_initial_embedding_from == "DDP":
+                ddp = embedding_model.DDP(
                     'models/dgp_ddp.mod',
-                    Kdim=config.dgp_kdim,
-                    solver=config.dgp_solver,
-                    projection=config.dgp_projection,
+                    Kdim=config.ddp_kdim,
+                    solver=config.ddp_solver,
+                    projection=config.ddp_projection,
                 )
-                enriched_embeddings = dgp.embed(adjacency_matrix)
+                enriched_embeddings = ddp.embed(adjacency_matrix)
             elif config.nlp_initial_embedding_from == "ISO":
                 iso = embedding_model.IsometricEmbedding()
                 enriched_embeddings = iso.embed(adjacency_matrix)
@@ -163,45 +161,47 @@ def main():
 
     if config.save_path:
         print(f"Saving model and embeddings to {config.save_path}")
-        save_data({'graph': graph, 'embedding': embedding}, config.save_path)
+        save_data({'graph': graph, 'embedding': embedding, 'config': config}, config.save_path)
 
     print("Evaluating error statistics.")
     print_error_summary(embedding, graph.adjacency_matrix())
 
-    print("Visualizing the embeddings.")
+        
+    if config.plot:
+        print("Visualizing the embeddings.")
 
-    all_words = graph.all_words
-    words: List[str] = np.random.choice(
+        all_words = graph.all_words
+        words: List[str] = np.random.choice(
         all_words, config.sample_size).tolist()
 
-    print(words)
-    visualize_embeddings(embedding, words, graph.get_word_idx)
+        print(words)
+        visualize_embeddings(embedding, words, graph.get_word_idx)
 
-    while True:
-        if plt.waitforbuttonpress(0):
-            plt.close()
-            user_input = input(
-                "Enter 'n' to input a new word, "
-                + "'q' to quit or "
-                + "'r' to a new random word: ")
-            if user_input == 'q':
-                break
-            elif user_input == 'r':
-                new_word = np.random.choice(
-                    [w for w in all_words if w not in words])
-                words.append(new_word)
-                visualize_embeddings(embedding, words, graph.get_word_idx)
-            elif user_input == 'n':
-                new_word = input("Enter a word you want to visualize: ")
-                if graph.get_word_idx(new_word) == 0:
-                    print("Word not in vocabulary.")
-                else:
+        while True:
+            if plt.waitforbuttonpress(0):
+                plt.close()
+                user_input = input(
+                    "Enter 'n' to input a new word, "
+                    + "'q' to quit or "
+                    + "'r' to a new random word: ")
+                if user_input == 'q':
+                    break
+                elif user_input == 'r':
+                    new_word = np.random.choice(
+                        [w for w in all_words if w not in words])
                     words.append(new_word)
-                visualize_embeddings(embedding, words, graph.get_word_idx)
+                    visualize_embeddings(embedding, words, graph.get_word_idx)
+                elif user_input == 'n':
+                    new_word = input("Enter a word you want to visualize: ")
+                    if graph.get_word_idx(new_word) == 0:
+                        print("Word not in vocabulary.")
+                    else:
+                        words.append(new_word)
+                    visualize_embeddings(embedding, words, graph.get_word_idx)
 
-            else:
-                print("Input not recognized. Closing.")
-                break
+                else:
+                    print("Input not recognized. Closing.")
+                    break
 
 
 if __name__ == "__main__":
