@@ -1,4 +1,4 @@
-__all__ = ["DGP"]
+__all__ = ["DDP"]
 
 from amplpy import AMPL
 import numpy as np
@@ -7,7 +7,7 @@ from graphlp.embedding_model.abstract import EmbeddingModel
 from graphlp.embedding_model.ampl_parsers import ampl_to_numpy, numpy_to_ampl
 
 
-class DGP(EmbeddingModel):
+class DDP(EmbeddingModel):
     def __init__(
         self,
         model_path: str,
@@ -68,6 +68,6 @@ class DGP(EmbeddingModel):
     @staticmethod
     def _barvinok(X: np.ndarray, K: int) -> np.ndarray:
         n = X.shape[0]
-        T = DGP._pca(X, n)
+        T = DDP._pca(X, n)
         y = np.random.normal(0, 1/np.sqrt(K), size=(n, K))
         return T @ y
