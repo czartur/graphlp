@@ -8,7 +8,6 @@ from typing import List, get_origin
 @dataclass
 class Configuration:
     training_size: List[str] = field(default_factory=lambda: ["10"])
-    # model: List[str] = field(default_factory=lambda: ["DDP", "NLP", "ISO"])
     model: List[str] = field(default_factory=lambda: ["NLP"])
     nlp_initial_embedding_from: List[str] = field(default_factory=lambda: ["DDP", "ISO"])
     ddp_projection: List[str] = field(default_factory=lambda: ["pca", "barvinok"])
@@ -54,7 +53,7 @@ def main():
     for i, combination in enumerate(combinations, start=1):
         
         # add path, lil dirty
-        cmd_path_suffix = '_'.join(combination) + ".pickle"
+        cmd_path_suffix = '_'.join(combination) + ".pkl"
         combination = combination + (os.path.join(output_path, cmd_path_suffix),)
         config_dict["save_path"] = ""
 

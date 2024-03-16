@@ -174,10 +174,10 @@ def main():
         words: List[str] = np.random.choice(
         all_words, config.sample_size).tolist()
 
-        print(words)
         visualize_embeddings(embedding, words, graph.get_word_idx)
 
         while True:
+            print(words)
             if plt.waitforbuttonpress(0):
                 plt.close()
                 user_input = input(

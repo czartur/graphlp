@@ -3,9 +3,10 @@ PYTHON=python3
 OUTPUT=results.csv
 
 extract_error() {
-    error_line=$($PYTHON main.py --load-path="$1" --no-plot| grep "mean distance error")
+    error_line="$($PYTHON main.py --load-path="$1" --no-plot| grep "$2")"
     echo "${error_line##*= }"
 }
+
 
 print_help() {
     echo "Usage: ./script.sh [OPTIONS]"
@@ -44,13 +45,14 @@ if [ ! -d "$folder_path" ]; then
 fi
 
 
-echo "File,Value" > $OUTPUT
+echo "File,MDE,LDE" > $OUTPUT
 for file in "$folder_path"/*; do
     if [ -f "$file" ]; then
         filename=$(basename -- "$file")
-        value=$(extract_error "$file")
-        echo "$filename,$value" >> $OUTPUT
-        echo "$filename: MDE = $value"
+        mde=$(extract_error "$file" "mean distance error")
+        lde=$(extract_error "$file" "largest distance error")
+        echo "$filename,$mde,$lde" >> $OUTPUT
+        echo "$filename: MDE = $mde, LDE = $lde"
     fi
 done
 
