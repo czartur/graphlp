@@ -8,7 +8,6 @@ name = "graphlp"
 version = "0.0.1"
 authors = [
   { name="Guile Vieira", email="guilhermevmanhaes@gmail.com" },
-  { name="Artur Araujo", email="" },
 ]
 description = ""
 readme = "README.md"
